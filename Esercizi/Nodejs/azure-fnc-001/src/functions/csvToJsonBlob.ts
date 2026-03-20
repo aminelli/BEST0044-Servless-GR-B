@@ -1,6 +1,11 @@
 import { app, InvocationContext } from "@azure/functions";
 import { getAppConfig } from "../config/appConfig";
 import { CsvToJsonTransformer } from "../services/csvTransformer";
+import { StorageService } from "../services/storageService";
+
+import { randomUUID } from 'crypto'
+
+const config = getAppConfig();
 
 export async function csvToJsonBlob(
     blob: Buffer, 
@@ -18,8 +23,9 @@ export async function csvToJsonBlob(
 
     try {
 
-        const config = getAppConfig();
-        const transformer = new CsvToJsonTransformer();        
+        
+        const transformer = new CsvToJsonTransformer();   
+        const service = new StorageService(config);     
 
         const csvContent = blob.toString('utf-8');
         context.log(`CSV content length: ${csvContent.length} characters`);
@@ -29,7 +35,21 @@ export async function csvToJsonBlob(
         const jsonString = transformer.toJsonString(jsonData);
         context.log(`Total successfully processed records: ${jsonData.length}`);
 
+        // Preparazione del nome del json e del csv processato
+        const uuid = randomUUID();
+        const jsonFileName = `${uuid}.json`;
+        const csvProcessedFileName = `${uuid}.csv`;
+
         
+        const jsonBlobPath = `${config.azureStorageContainerName}}/${config.folderPathJson}/${jsonFileName}`;
+        const csvProcessedBlobPath = `${config.azureStorageContainerName}}/${config.folderPathCsvProcessed}/${csvProcessedFileName}`;
+
+        // Salvataggio del JSON su Blob Storage
+        await service.writeBlobFromString(jsonBlobPath, jsonString, 'application/json');
+
+        await service.moveBlob(blobName, csvProcessedBlobPath);
+
+        context.log(`JSON blob uploaded successfully: ${jsonBlobPath}`);
         
     } catch (error) {
         if (error instanceof Error) {
@@ -43,11 +63,10 @@ export async function csvToJsonBlob(
 
 
  
- 
 }
 
 app.storageBlob('csvToJsonBlob', {
-    path: 'data/csv/{name}',
-    connection: 'DefaultEndpointsProtocol=https;AccountName=best0044grb;AccountKey=PP918rGKEie+oKRfpUUgjROW3B/V0Ecdm3QskQKFPrCu6R2udWjr8IEhe5FtRGBkEs2h1U4hr5IG+ASt4eNMVg==;EndpointSuffix=core.windows.net',
+    path: `${config.azureStorageContainerName}/${config.folderPathCsv}/{name}`,
+    connection: config.azureStorageConnectionString,
     handler: csvToJsonBlob
 });

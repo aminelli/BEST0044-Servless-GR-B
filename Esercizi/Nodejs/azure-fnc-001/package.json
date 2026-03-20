@@ -13,12 +13,17 @@
   },
   "dependencies": {
     "@azure/functions": "^4.11.0",
-    "csv-parse": "^6.2.1"
+    "@azure/identity": "^4.13.1",
+    "@azure/storage-blob": "^12.31.0",
+    "csv-parse": "^6.2.1"    
   },
   "devDependencies": {
     "@types/node": "^22.x",
     "azure-functions-core-tools": "^4.x",
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0"
+  }, 
+  "overrides": {
+    "glob": "^13.0.6"
   }
 }

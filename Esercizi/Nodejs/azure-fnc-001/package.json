@@ -1,0 +1,24 @@
+{
+  "name": "functions-quickstart-typescript-azd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/src/{index.js,functions/*.js}",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/functions": "^4.11.0",
+    "csv-parse": "^6.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.x",
+    "azure-functions-core-tools": "^4.x",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
+  }
+}

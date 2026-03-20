@@ -4,8 +4,8 @@
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
         "FUNCTIONS_WORKER_RUNTIME": "node",
     
-        "AZURE_RESOURCE_GROUP": "",
-        "AZURE_STORAGE_ACCOUNT_NAME": "",
+        "AZURE_RESOURCE_GROUP": "BEST0044-GR-B-Servless",
+        "AZURE_STORAGE_ACCOUNT_NAME": "best0044grb",
         "AZURE_STORAGE_CONTAINER_NAME": "data",
         "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=https;AccountName=best0044grb;AccountKey=PP918rGKEie+oKRfpUUgjROW3B/V0Ecdm3QskQKFPrCu6R2udWjr8IEhe5FtRGBkEs2h1U4hr5IG+ASt4eNMVg==;EndpointSuffix=core.windows.net",
 

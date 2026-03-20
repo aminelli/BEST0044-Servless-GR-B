@@ -5,7 +5,24 @@ import { StorageService } from "../services/storageService";
 
 import { randomUUID } from 'crypto'
 
-const config = getAppConfig();
+// Istanze singleton per riutilizzare le connessioni e ridurre cold start
+let transformerInstance: CsvToJsonTransformer | null = null;
+let storageServiceInstance: StorageService | null = null;
+
+function getTransformer(): CsvToJsonTransformer {
+    if (!transformerInstance) {
+        transformerInstance = new CsvToJsonTransformer();
+    }
+    return transformerInstance;
+}
+
+function getStorageService(): StorageService {
+    if (!storageServiceInstance) {
+        const config = getAppConfig();
+        storageServiceInstance = StorageService.getInstance(config);
+    }
+    return storageServiceInstance;
+}
 
 export async function csvToJsonBlob(
     blob: Buffer, 
@@ -22,10 +39,10 @@ export async function csvToJsonBlob(
     }
 
     try {
-
-        
-        const transformer = new CsvToJsonTransformer();   
-        const service = new StorageService(config);     
+        // Usa istanze singleton per riutilizzare le connessioni
+        const transformer = getTransformer();   
+        const service = getStorageService();
+        const config = getAppConfig();
 
         const csvContent = blob.toString('utf-8');
         context.log(`CSV content length: ${csvContent.length} characters`);
@@ -65,8 +82,9 @@ export async function csvToJsonBlob(
  
 }
 
+// Registrazione del trigger con valori delle env vars (valutati a runtime)
 app.storageBlob('csvToJsonBlob', {
-    path: `${config.azureStorageContainerName}/${config.folderPathCsv}/{name}`,
-    connection: config.azureStorageConnectionString,
+    path: `${process.env.AZURE_STORAGE_CONTAINER_NAME || 'data'}/${process.env.FOLDER_PATH_CSV || 'csv'}/{name}`,
+    connection: 'AZURE_STORAGE_CONNECTION_STRING',
     handler: csvToJsonBlob
 });

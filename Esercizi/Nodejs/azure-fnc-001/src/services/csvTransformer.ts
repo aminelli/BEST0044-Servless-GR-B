@@ -1,4 +1,4 @@
-import { parse } from "csv-parse/sync";
+import { parse } from "csv-parse";
 
 export interface CsvRow {
   [key: string]: string | number | boolean; // | null;
@@ -45,7 +45,16 @@ export class CsvToJsonTransformer {
         skip_recorsds_with_error: options?.skip_recorsds_with_error ?? true,
       };
 
-      const records = parse(csvContent, parserOptions) as unknown as CsvRow[];
+      // Usa la versione async di parse per non bloccare l'event loop
+      const records = await new Promise<CsvRow[]>((resolve, reject) => {
+        parse(csvContent, parserOptions, (err, output) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(output as unknown as CsvRow[]);
+          }
+        });
+      });
 
       if (!Array.isArray(records) || records.length === 0) {
         throw new Error("No records found in CSV content");
@@ -65,7 +74,10 @@ export class CsvToJsonTransformer {
     try {
       return pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
     } catch (error) {
-      throw new Error(`Error converting data to JSON string: ${error.message}`);
+      if (error instanceof Error) { 
+       throw new Error(`Error converting data to JSON string: ${error.message}`);
+      }
+        throw new Error(`Unexpected error converting data to JSON string:`);
     }
   }
 }

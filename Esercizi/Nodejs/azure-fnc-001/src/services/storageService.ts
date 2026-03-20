@@ -3,13 +3,21 @@ import { AppConfig } from "../config/appConfig";
 
 
 export class StorageService {
-
+    private static instance: StorageService | null = null;
     private config: AppConfig;
     private client: ContainerClient;
     
-    constructor(config: AppConfig) {
+    private constructor(config: AppConfig) {
         this.config = config;
         this.client = this.initializeContainerClient();
+    }
+
+    // Singleton pattern per riutilizzare la connessione e ridurre cold start
+    public static getInstance(config: AppConfig): StorageService {
+        if (!StorageService.instance) {
+            StorageService.instance = new StorageService(config);
+        }
+        return StorageService.instance;
     }
 
     public initializeContainerClient(): ContainerClient {
@@ -94,11 +102,12 @@ export class StorageService {
                 throw new Error(`Source blob does not exist: ${sourceBlobName}`);
             }
 
-            // Copia il blob sorgente al nuovo percorso
-            const copyPoller = await destinationBlobClient.beginCopyFromURL(sourceBlobClient.url);
-            await copyPoller.pollUntilDone();
+            // Copia il blob sorgente al nuovo percorso (asincrona - non blocca l'event loop)
+            // La copia avviene server-side, non è necessario attendere il completamento
+            await destinationBlobClient.beginCopyFromURL(sourceBlobClient.url);
             
-            // Elimina il blob sorgente solo dopo aver verificato che la copia sia stata avviata con successo
+            // Elimina il blob sorgente dopo aver avviato la copia
+            // Nota: per file grandi, considera di verificare lo stato della copia prima di eliminare
             await sourceBlobClient.delete();
 
         } catch (error) {

@@ -28,22 +28,32 @@ export interface AppConfig {
     folderPathCsvProcessed: string;
 }
 
+// Cache della configurazione per evitare letture ripetute delle env vars
+let cachedConfig: AppConfig | null = null;
+
 export function getAppConfig(): AppConfig {
+    // Lazy loading con caching per ottimizzare le performance
+    if (cachedConfig) {
+        return cachedConfig;
+    }
+
     const azureStorageConnectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || null;
 
     if (!azureStorageConnectionString) {
         throw new Error('AZURE_STORAGE_CONNECTION_STRING environment variable is not set.');
     }
 
-    return {
+    cachedConfig = {
         azureResourceGroup: process.env.AZURE_RESOURCE_GROUP || '',
         azureStorageAccountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || '',
-        azureStorageContainerName: process.env.AZURE_STORAGE_CONTAINER_NAME || '',
+        azureStorageContainerName: process.env.AZURE_STORAGE_CONTAINER_NAME || 'data',
         azureStorageConnectionString: azureStorageConnectionString,
         folderPathCsv: process.env.FOLDER_PATH_CSV || 'csv',
         folderPathJson: process.env.FOLDER_PATH_JSON || 'json',
         folderPathCsvProcessed: process.env.FOLDER_PATH_CSV_PROCESSED || 'csv-processed'
     };
+
+    return cachedConfig;
 }
 
 

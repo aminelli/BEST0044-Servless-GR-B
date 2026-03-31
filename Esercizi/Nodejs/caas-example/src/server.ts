@@ -128,12 +128,12 @@ app.get('/', (req: Request, res: Response) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
     logger.info(`Server is running on port ${PORT}`);
     logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.info(`Cloud Provider: ${process.env.CLOUD_PROVIDER || 'local'}`);
 
-    const dbConnected = testConnection();
+    const dbConnected = await testConnection();
     if (dbConnected) {
         logger.info('Database connection successful');
     } else {
@@ -143,8 +143,9 @@ const server = app.listen(PORT, () => {
 
 
 // Graceful shuitdown (gestione chiusura del server in modo pulito)
-const gracefulShutdown   = (signal: string) => {
+const gracefulShutdown   = async  (signal: string) => {
     logger.info('Shutting down server gracefully...');
+    logger.info(`Received signal: ${signal}`);
     
     server.close(async () => {
         logger.info('Server closed');
@@ -180,7 +181,5 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason) => {
     logger.error('Unhandled Rejection: reason:', reason);    
 });
-
-
 
 export default app;

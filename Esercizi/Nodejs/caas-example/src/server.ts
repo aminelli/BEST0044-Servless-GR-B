@@ -5,7 +5,6 @@ import cors from 'cors';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
-import { uptime } from 'process';
 
 // Carica le variabili d'ambiente dal file .env
 dotenv.config();
@@ -89,3 +88,6 @@ app.get('/health', (req: Request, res: Response) => {
         uptime: process.uptime() 
     });
 });
+
+
+export default app;
